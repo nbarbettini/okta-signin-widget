@@ -135,12 +135,13 @@ function (Okta, OAuth2Util, Enums, BrowserFeatures, Errors, ErrorCodes) {
               return;
             }
 
-            console.log('features.useFormPost is on. doing a form submit');
-
             var form = document.createElement('form');
             form.method = 'get';
             form.action = targetUrl.split('?')[0];
 
+            // This is a terrible workaround for the fact that
+            // {url}/redirect?stateToken=... 
+            // doesn't support POST right now
             var stateTokenParameterInput = document.createElement('input');
             stateTokenParameterInput.name = 'stateToken';
             stateTokenParameterInput.type = 'hidden';
@@ -167,8 +168,6 @@ function (Okta, OAuth2Util, Enums, BrowserFeatures, Errors, ErrorCodes) {
               Util.redirect(url);
               return;
             }
-
-            console.log('features.useFormPost is on. doing a form post');
 
             var form = document.createElement('form');
             form.method = 'post';
