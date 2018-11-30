@@ -130,7 +130,25 @@ function (Okta, OAuth2Util, Enums, BrowserFeatures, Errors, ErrorCodes) {
         successData.stepUp = {
           url: targetUrl,
           finish: function () {
-            Util.redirect(targetUrl);
+            if (!router.settings.get('features.useFormPost')) {
+              Util.redirect(targetUrl);
+              return;
+            }
+
+            console.log('features.useFormPost is on. doing a form submit');
+
+            var form = document.createElement('form');
+            form.method = 'get';
+            form.action = targetUrl.split('?')[0];
+
+            var stateTokenParameterInput = document.createElement('input');
+            stateTokenParameterInput.name = 'stateToken';
+            stateTokenParameterInput.type = 'hidden';
+            stateTokenParameterInput.value = targetUrl.split('=')[1];
+            form.appendChild(stateTokenParameterInput);
+
+            document.body.appendChild(form);
+            form.submit();
           }
         };
       } else {
@@ -139,11 +157,24 @@ function (Okta, OAuth2Util, Enums, BrowserFeatures, Errors, ErrorCodes) {
         successData.session = {
           token: res.sessionToken,
           setCookieAndRedirect: function (redirectUrl) {
-            Util.redirect(sessionCookieRedirectTpl({
+            var url = sessionCookieRedirectTpl({
               baseUrl: router.settings.get('baseUrl'),
               token: encodeURIComponent(res.sessionToken),
               redirectUrl: encodeURIComponent(redirectUrl)
-            }));
+            });
+
+            if (!router.settings.get('features.useFormPost')) {
+              Util.redirect(url);
+              return;
+            }
+
+            console.log('features.useFormPost is on. doing a form post');
+
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = url;
+            document.body.appendChild(form);
+            form.submit();
           }
         };
       }
